@@ -1,52 +1,11 @@
-// Package openvpnStatus is a simple OpenVPN status file parser
-package openvpnStatus
+package main
 
 import (
 	"bufio"
-	"os"
 	"strconv"
 	"strings"
 	"time"
 )
-
-// Client Struct to store Client Information
-type Client struct {
-	CommonName     string
-	RealAddress    string
-	BytesReceived  string
-	BytesSent      string
-	ConnectedSince time.Time
-}
-
-// Routing Struct to store Routing Information
-type Routing struct {
-	VirtualAddress string
-	CommonName     string
-	RealAddress    string
-	LastRef        time.Time
-}
-
-// GlobalStats struct to store Global stats
-type GlobalStats struct {
-	MaxBcastMcastQueueLen int
-}
-
-// Status struct to store the status
-type Status struct {
-	ClientList   []Client
-	RoutingTable []Routing
-	GlobalStats  GlobalStats
-	UpdatedAt    time.Time
-	IsUp         bool
-}
-
-type parseError struct {
-	s string
-}
-
-func (e *parseError) Error() string {
-	return e.s
-}
 
 var clientListHeaderColumns = [5]string{
 	"Common Name",
@@ -99,17 +58,10 @@ func checkRoutingTableHeaders(headers []string) bool {
 
 const dateLayout = "Mon Jan 2 15:04:05 2006"
 
-// ParseFile parses OpenVPN Status file ad returns a Status struct
-func ParseFile(file string) (*Status, error) {
-	conn, err := os.Open(file)
-	defer conn.Close()
-	if err != nil {
-		return &Status{IsUp: false}, err
-	}
-
-	reader := bufio.NewReader(conn)
+func process(reader *bufio.Reader) (*Status, error) {
 	scanner := bufio.NewScanner(reader)
 	scanner.Split(bufio.ScanLines)
+
 	var lastUpdatedAt string
 	var clients []Client
 	var routingTable []Routing
