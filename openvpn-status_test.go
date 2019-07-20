@@ -1,4 +1,4 @@
-package openvpnStatus
+package main
 
 import (
 	"testing"
